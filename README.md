@@ -37,3 +37,5 @@ multithreaded-web-server/
 ├── webserver.c
 └── webserver.h
 ```
+
+For more detailed information about this project, refer to the "Report.pdf" included in the repository.
