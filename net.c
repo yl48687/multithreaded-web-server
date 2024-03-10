@@ -20,7 +20,7 @@ int CRASH = 0;
 
 int gettid() {
 		return syscall(__NR_gettid) - getpid();
-}
+} // gettid
 
 char *get_mime_type(char *name) {
 		char *ext = strrchr(name, '.');
@@ -36,7 +36,7 @@ char *get_mime_type(char *name) {
 		if (strcmp(ext, ".mpeg") == 0 || strcmp(ext, ".mpg") == 0) return "video/mpeg";
 		if (strcmp(ext, ".mp3") == 0) return "audio/mpeg";
 		return NULL;
-}
+} // get_mime_type
 
 void send_headers(FILE *f, int status, char *title, char *extra, char *mime, 
 				int length, time_t date) {
@@ -80,8 +80,8 @@ void send_file(FILE *f, char *path, struct stat *statbuf) {
 
 				while ((n = fread(data, 1, sizeof(data), file)) > 0) fwrite(data, 1, n, f);
 				fclose(file);
-		}
-}
+		} // if
+} // send_file
 
 int process(int fd) {
 		char buf[4096];
@@ -102,30 +102,30 @@ int process(int fd) {
 				printf("Thread [pid %d, tid %d] terminated!\n", getpid(), gettid());
 				close(fd);
 				pthread_exit(NULL);
-		}
+		} // if
 
 		f = fdopen(fd, "a+");
 		usleep(100000);
 
 		if(getpeername(fd, (struct sockaddr*) &peer, &peer_len) != -1) {
 				printf("[pid %d, tid %d] Received a request from %s:%d\n", getpid(), gettid(), inet_ntoa(peer.sin_addr), (int)ntohs(peer.sin_port));
-		}
+		} // if
 
 		if(f == NULL) {
 				printf("fileopen error: %s\n", fd);
 				return -1;
-		}
+		} // if
 
 		if (!fgets(buf, sizeof(buf), f)) {
 				fclose(f);
 				return -1;
-		}
+		} // if
 
 		if(getpeername(fileno(f), (struct sockaddr*) &peer, &peer_len) != -1) {
 				printf("[pid %d, tid %d] (from %s:%d) URL: %s", getpid(), gettid(),inet_ntoa(peer.sin_addr), (int)ntohs(peer.sin_port), buf);
 		} else {
 				printf("[pid %d, tid %d] URL: %s", getpid(), gettid(), buf);
-		}
+		} // if
 
 		method = strtok(buf, " ");
 		_path = strtok(NULL, " ");
@@ -133,7 +133,7 @@ int process(int fd) {
 		if (!method || !_path || !protocol) {
 				fclose(f);
 				return -1;
-		}
+		} // if
 
 		getcwd(cwd, sizeof(cwd));
 		sprintf(path, "%s%s", cwd, _path);
@@ -193,14 +193,13 @@ int process(int fd) {
 
 								fprintf(f, "</PRE>\r\n<HR>\r\n<ADDRESS>%s</ADDRESS>\r\n</BODY></HTML>\r\n", SERVER);
 								printf("[pid %d, tid %d] Reply: SUCCEED\n", getpid(), gettid());
-						}
-				}
+						} // if
+				} // if
 		} else {
 				send_file(f, path, &statbuf);
 				printf("[pid %d, tid %d] Reply: filesend %s\n", getpid(), gettid(), path);
-		}
+		} // if
 		
 		fclose(f);
 		return 0;
-}
-
+} // process
